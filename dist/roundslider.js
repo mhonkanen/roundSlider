@@ -1735,7 +1735,7 @@
     };
 
     // Bypass code during server-side rendering (to play well with NextJS)
-    if ($.fn_) {
+    if ($.fn) {
         $.fn.rsRotate = function (degree) {
             var control = this, rotation = degree != null ? "rotate(" + degree + "deg)" : "";
             control.css('-webkit-transform', rotation);
