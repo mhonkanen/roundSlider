@@ -21,9 +21,12 @@
     var pluginName = "roundSlider";
 
     // The plugin initialization
-    $.fn[pluginName] = function (options) {
-        return CreateRoundSlider.call(this, options, arguments);
-    };
+    // Bypass code during server-side rendering (to play well with NextJS)
+    if ($.fn) {
+        $.fn[pluginName] = function (options) {
+            return CreateRoundSlider.call(this, options, arguments);
+        };
+    }
 
     RoundSlider.prototype = {
 
@@ -110,7 +113,7 @@
                 stringType: ["value", "handleSize", "endAngle", "sliderType", "circleShape", "handleShape", "lineCap", "borderVisibility"]
             };
         },
-        
+
         _init: function () {
             var options = this.options;
             if (options.svgMode) {
@@ -633,7 +636,7 @@
                         // so this will make the handle unfocus, to avoid that we can prevent this event
                         e.preventDefault();
                     }
-                    
+
                     var d = this._getAngleValue(point, center);
                     angle = d.angle, value = d.value;
 
@@ -711,7 +714,7 @@
         },
         _handleKeyDown: function (e) {
             var key = e.keyCode, keyCodes = this.keys;
-            
+
             if (key == 27)                                      // if Esc key pressed then hanldes will be focused out
                 this._handles().blur();
 
@@ -912,7 +915,7 @@
         _updateSliderThickness: function () {
             var o = this.options, width = o.width,
                 sliderWidth = width + (o.borderWidth * 2);
-            
+
             var pathWidth = this._pathWidth = this._calcRelativeValue(o.pathWidth, width),
                 rangeWidth = this._rangeWidth = this._calcRelativeValue(o.rangeWidth, width);
 
@@ -1107,7 +1110,7 @@
         _processStepByValue: function (value) {
             var o = this.options, min = o.min, max = o.max, step = o.step, isMinHigher = (min > max);
             var remain, preVal, nextVal, midVal, newVal;
-            
+
             step = (isMinHigher ? -step : step);
             remain = (value - min) % step;
 
@@ -1731,13 +1734,16 @@
         }
     };
 
-    $.fn.rsRotate = function (degree) {
-        var control = this, rotation = degree != null ? "rotate(" + degree + "deg)" : "";
-        control.css('-webkit-transform', rotation);
-        control.css('-ms-transform', rotation);
-        control.css('transform', rotation);
-        return control;
-    };
+    // Bypass code during server-side rendering (to play well with NextJS)
+    if ($.fn_) {
+        $.fn.rsRotate = function (degree) {
+            var control = this, rotation = degree != null ? "rotate(" + degree + "deg)" : "";
+            control.css('-webkit-transform', rotation);
+            control.css('-ms-transform', rotation);
+            control.css('transform', rotation);
+            return control;
+        };
+    }
 
     // The plugin constructor
     function RoundSlider(control, options) {
@@ -1749,7 +1755,7 @@
         this.options = $.extend({}, this.defaults, this._initialOptions);
 
         this._saveInstanceOnElement(control);
-				
+
         if (this._raise("beforeCreate") !== false) {
             this._init();
             this._raise("create");
@@ -1796,7 +1802,7 @@
     RoundSlider.prototype._polarToCartesian = function (radius, angleInDegrees) {
         var angleInRadians = (angleInDegrees - 180) * Math.PI / 180;
         var centerXY = this.options.radius;
-    
+
         return [
             centerXY + (radius * Math.cos(angleInRadians)),
             centerXY + (radius * Math.sin(angleInRadians))
@@ -1811,15 +1817,15 @@
         if (isInvertedRange) {
             endAngle = this._end;
         }
-    
+
         var isCircle = (endAngle - startAngle == 360);
         var largeArcFlag = Math.abs(startAngle - endAngle) <= 180 ? "0" : "1";
         var direction = isReverseDirection ? 0 : 1;
         var _endAngle = isReverseDirection ?  startAngle : endAngle;
         var endPoint = this._polarToCartesian(radius, _endAngle);
-    
+
         var path = [];
-    
+
         // if it is a perfect circle then draw two half circles, otherwise draw arc
         if (isCircle) {
             var midAngle = (startAngle + endAngle) / 2;
@@ -1833,18 +1839,18 @@
             path.push(
                 "A", radius, radius, 0, largeArcFlag, direction, endPoint
             );
-    
+
             if (isInvertedRange) {
                 var sliderStartAngle = this._start;
                 var sliderStartPoint = this._polarToCartesian(radius, sliderStartAngle);
-    
+
                 path.push(
                     "M " + sliderStartPoint,
                     this._drawArc(sliderStartAngle, actualEndAngle, radius)
                 );
             }
         }
-    
+
         return path.join(" ");
     };
 
@@ -1855,16 +1861,16 @@
 
         var outerStart = this._polarToCartesian(outerRadius, startAngle);
         var outerArc = this._drawArc(startAngle, endAngle, outerRadius);          // draw outer circle
-    
+
         var d = [
             "M " + outerStart,
             outerArc
         ];
-    
+
         if (this._isNumber(innerRadius) && innerRadius !== outerRadius) {
             var innerEnd = this._polarToCartesian(innerRadius, endAngle);
             var innerArc = this._drawArc(startAngle, endAngle, innerRadius, true);     // draw inner circle
-            
+
             if (lineCap == "butt") {
                 d.push(
                     "L " + innerEnd,
@@ -1923,6 +1929,9 @@
         return d.join(" ");
     };
 
-    $.fn[pluginName].prototype = RoundSlider.prototype;
+    // Bypass code during server-side rendering (to play well with NextJS)
+    if ($.fn) {
+        $.fn[pluginName].prototype = RoundSlider.prototype;
+    }
 
 });
